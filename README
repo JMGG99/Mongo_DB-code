@@ -1,0 +1,10 @@
+Amazon Reviews Analysis
+This project focuses on analyzing product reviews from Amazon using MongoDB. The goal is to extract meaningful insights from customer reviews, which can be useful for building a product recommendation system. The analysis includes:
+
+Identifying the year with the most reviews.
+Extracting all reviews from that specific year.
+Filtering reviews to get only the highest (5-star) and lowest (1-star) ratings.
+Aggregating neutral reviews (3-star) and adding a "neutral" label without modifying the database.
+Retrieving the title and author name of the best-rated reviews.
+
+The project uses Python with pymongo for database operations and regular expressions to extract date-related information. The extracted insights can help Amazon improve its recommendation system and understand customer feedback trends.
