@@ -1,0 +1,44 @@
+from pymongo import MongoClient
+import re
+import dns
+import pandas as pd
+import json
+
+# Connect to the database
+client = MongoClient("mongodb://username:password@tu_cluster")
+db = client["master-data"]
+collection = db["amazon"]
+
+# 1. Get the year with the most reviews
+pipeline = [
+    {"$project": {"year": {"$regexFind": {"input": "$reviewTime", "regex": "\\d{4}$"}}}},  # Extract the year from the reviewTime field
+    {"$group": {"_id": "$year.match", "count": {"$sum": 1}}},  # Count reviews per year
+    {"$sort": {"count": -1}},  # Sort in descending order
+    {"$limit": 1}  # Get the top year
+]
+result = list(collection.aggregate(pipeline))
+most_reviews_year = result[0]["_id"] if result else None
+print("Year with most reviews:", most_reviews_year)
+
+# 2. Get reviews from the most active year
+reviews_of_year = collection.find({"reviewTime": {"$regex": most_reviews_year}})
+for review in reviews_of_year:
+    print(review)
+
+# 3. Filter reviews with highest (5) and lowest (1) ratings
+high_low_reviews = collection.find({"overall": {"$in": [1, 5]}})
+for review in high_low_reviews:
+    print(review)
+
+# 4. Get neutral reviews (3) and add an extra field "label: neutral"
+pipeline_neutral = [
+    {"$match": {"overall": 3}},  # Filter only reviews with overall rating 3
+    {"$addFields": {"label": "neutral"}}  # Add a new field "label" with value "neutral"
+]
+neutral_reviews = list(collection.aggregate(pipeline_neutral))
+print(neutral_reviews)
+
+# 5. Get the title and author name of the best-rated reviews (5 stars)
+best_reviews = collection.find({"overall": 5}, {"summary": 1, "reviewerName": 1, "_id": 0})
+for review in best_reviews:
+    print(review)
